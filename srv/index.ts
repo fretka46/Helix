@@ -3,7 +3,7 @@ import type { ServerWebSocket } from "bun";
 let users = new Map<string, ServerWebSocket<{ username: string }>>();
 
 const server = Bun.serve<{ username: string }>({
-  port: 8080,
+  port: 8000,
   fetch(req, server) {
     const url = new URL(req.url);
     console.log(`upgrade!`);

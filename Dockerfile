@@ -8,4 +8,4 @@ ENV PATH=$PATH:/root/.bun/bin
 COPY ./srv /srv
 WORKDIR /srv
 
-CMD ["bun", "index.ts"]
+ENTRYPOINT [ "/srv/start.sh" ]
