@@ -1,2 +1,7 @@
+#!/bin/bash
+
 bun ./index.ts &
-bun ./test.ts
+bun ./test.ts &
+
+bash ;
+tail -f /dev/null ;
