@@ -1,3 +1,4 @@
+#!/bin/bash
 
 bun ./index.ts &
 bun ./test.ts &
