@@ -81,19 +81,7 @@ public class InventoryController : MonoBehaviour
 
         if (CurrentItem != null)
         {
-            // Reactivate the current item
-            CurrentItem.SpawnedItem.SetActive(true);
-
-            // Add the spawned item to the player object
-            CurrentItem.SpawnedItem.transform.SetParent(Owner.transform);
-
-            // Set the item's position and rotation to the player's position and rotation
-            Vector3 offsetPosition = Owner.PlayerCamera.transform.position + Owner.PlayerCamera.transform.TransformDirection(CurrentItem.PickedUpOffset);
-            CurrentItem.SpawnedItem.transform.SetPositionAndRotation(offsetPosition, Owner.PlayerCamera.transform.rotation);
-
-            Debug.Log($"Added inventory item at position {offsetPosition}, Offset: {CurrentItem.PickedUpOffset}");
-
-            Debug.Log($"Current index: {CurrentItemIndex}, Name: {CurrentItem.ItemName}");
+            HoldItem(CurrentItem);
         }
     }
 
@@ -126,5 +114,22 @@ public class InventoryController : MonoBehaviour
                 Debug.Log("SearchItem Raycast did not hit anything");
             }
         }
+    }
+
+    void HoldItem(Item item)
+    {
+        // Reactivate the current item
+        item.SpawnedItem.SetActive(true);
+
+        // Add the spawned item to the player object
+        item.SpawnedItem.transform.SetParent(Owner.transform);
+
+        // Set the item's position and rotation to the player's position and rotation
+        Vector3 offsetPosition = Owner.PlayerCamera.transform.position + Owner.PlayerCamera.transform.TransformDirection(CurrentItem.PickedUpOffset);
+        item.SpawnedItem.transform.SetPositionAndRotation(offsetPosition, Owner.PlayerCamera.transform.rotation);
+
+        Debug.Log($"Added inventory item at position {offsetPosition}, Offset: {CurrentItem.PickedUpOffset}");
+
+        Debug.Log($"Current index: {CurrentItemIndex}, Name: {CurrentItem.ItemName}");
     }
 }
