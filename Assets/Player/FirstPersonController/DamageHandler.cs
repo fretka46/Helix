@@ -1,44 +1,52 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // If using TextMeshPro
+using TMPro;
 
 public class DamageHandler : MonoBehaviour
 {
-    public Image healthBar;
-    public TextMeshProUGUI scoreText; // If using TextMeshPro
-    // public Text scoreText; // If using the default Text component
+    public TextMeshProUGUI HealthBar;
+    public Player Player;
 
-    private int score = 0;
-    private float maxHealth = 100f;
-    private float currentHealth;
+    public float MaxHealth = 100f;
+    private float _health = 100f;
+    public float Health
+    {
+        get => _health;
+        set
+        {
+            _health = value;
+            UpdateHealthBar();
+        }
+    }
 
     void Start()
     {
-        currentHealth = maxHealth;
         UpdateHealthBar();
-        UpdateScoreText();
+        Player = GetComponent<Player>();
     }
 
     public void TakeDamage(float damage)
     {
-        currentHealth -= damage;
-        if (currentHealth < 0) currentHealth = 0;
+        Health -= damage;
+        Debug.Log($"{Player.Nickname} took {damage} damage. Current health: {Health}");
+
+        if (Health <= 0)
+        {
+            Health = 0;
+            Die();
+        }
+
         UpdateHealthBar();
     }
 
-    public void AddScore(int points)
+    public void Die()
     {
-        score += points;
-        UpdateScoreText();
+        Debug.Log($"{Player.Nickname} died");
     }
 
     void UpdateHealthBar()
-    {
-        healthBar.fillAmount = currentHealth / maxHealth;
-    }
-
-    void UpdateScoreText()
-    {
-        scoreText.text = "Score: " + score.ToString();
+    { 
+        if (HealthBar != null)
+            HealthBar.text = "HP: " + Health;
     }
 }

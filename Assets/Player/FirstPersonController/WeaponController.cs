@@ -1,53 +1,130 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class WeaponController : MonoBehaviour
+public class InventoryController : MonoBehaviour
 {
-    public GameObject bulletPrefab;
-    public Transform firePoint; // Empty object for bullet spawn point
-    public float bulletSpeed = 100f;
-    public DamageHandler damageHandler;
-
-    void Update()
+    public List<Item> Inventory = new();
+    public int CurrentItemIndex = 0;
+    public int MaxItems = 5;
+    public Item CurrentItem
     {
-        if (Input.GetButtonDown("Fire1")) // Left mouse button
+        get
         {
-            Shoot();
-        }
+            if (Inventory.Count == 0)
+                return null;
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // Simulate taking damage
-            damageHandler.TakeDamage(10);
-        }
-
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            // Simulate adding score
-            damageHandler.AddScore(1);
+            return CurrentItemIndex >= Inventory.Count ? null : Inventory[CurrentItemIndex];
         }
     }
 
-    void Shoot()
+    public Player Owner => GetComponent<Player>();
+
+    // Start is called before the first frame update
+    void Start()
     {
-        // Calculate the spawn position 0.5 meters in front of the firePoint
-        Vector3 spawnPosition = firePoint.position + firePoint.forward * 1.5f;
+    }
 
-        // Instantiate the bullet at the calculated position and with the firePoint's rotation
-        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, firePoint.rotation);
-        // Add bullet script to the bullet
-        bullet.AddComponent<Bullet>();
-
-        // Ensure the bullet has a Rigidbody component
-        Rigidbody rb = bullet.GetComponent<Rigidbody>();
-        if (rb == null)
+    void Update()
+    {
+        if (Input.mouseScrollDelta != Vector2.zero)
         {
-            rb = bullet.AddComponent<Rigidbody>();
+            ChangeItem();
         }
 
-        // Set the Rigidbody to use continuous collision detection
-        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        // Check if player is trying to pickup item
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("Picking up item");
+            PickupItem();
+        }
 
-        // Set the bullet's velocity
-        rb.velocity = firePoint.forward * bulletSpeed;
+        // Update the position and rotation of the current item to follow the player's camera
+        if (CurrentItem != null && CurrentItem.SpawnedItem != null)
+        {
+            Vector3 offsetPosition = Owner.PlayerCamera.transform.position + Owner.PlayerCamera.transform.TransformDirection(CurrentItem.PickedUpOffset);
+            CurrentItem.SpawnedItem.transform.SetPositionAndRotation(offsetPosition, Owner.PlayerCamera.transform.rotation);
+        }
+    }
+
+    void ChangeItem()
+    {
+        if (CurrentItem != null)
+            CurrentItem.SpawnedItem.SetActive(false);
+
+        if (Input.mouseScrollDelta.y > 0)
+        {
+            if (CurrentItemIndex == MaxItems - 1)
+            {
+                CurrentItemIndex = 0;
+            }
+            else
+            {
+                CurrentItemIndex++;
+            }
+        }
+        else
+        {
+            if (CurrentItemIndex == 0)
+            {
+                CurrentItemIndex = MaxItems - 1;
+            }
+            else
+            {
+                CurrentItemIndex--;
+            }
+        }
+
+        Owner.PlayerUi.IventoryIndex.text = $"{CurrentItemIndex.ToString()}\n{CurrentItem?.name}";
+
+        Debug.Log($"Current index: {CurrentItemIndex}, Name: {CurrentItem?.ItemName}");
+
+        if (CurrentItem != null)
+        {
+            // Reactivate the current item
+            CurrentItem.SpawnedItem.SetActive(true);
+
+            // Add the spawned item to the player object
+            CurrentItem.SpawnedItem.transform.SetParent(Owner.transform);
+
+            // Set the item's position and rotation to the player's position and rotation
+            Vector3 offsetPosition = Owner.PlayerCamera.transform.position + Owner.PlayerCamera.transform.TransformDirection(CurrentItem.PickedUpOffset);
+            CurrentItem.SpawnedItem.transform.SetPositionAndRotation(offsetPosition, Owner.PlayerCamera.transform.rotation);
+
+            Debug.Log($"Added inventory item at position {offsetPosition}, Offset: {CurrentItem.PickedUpOffset}");
+
+            Debug.Log($"Current index: {CurrentItemIndex}, Name: {CurrentItem.ItemName}");
+        }
+    }
+
+    void PickupItem()
+    {
+        // Check if the player is already holding an item
+        if (Inventory.Count < MaxItems)
+        {
+            // Check if the player is looking at an item
+            RaycastHit hit;
+            if (Physics.Raycast(Owner.PlayerCamera.transform.position, Owner.PlayerCamera.transform.forward, out hit, 5f))
+            {
+                // Check if the item has an Item component
+                Item item = hit.transform.GetComponent<Item>();
+                if (item != null)
+                {
+                    // Add the item to the player's inventory
+                    Inventory.Add(item);
+
+                    // Deactivate the item in the world
+                    item.gameObject.SetActive(false);
+
+                    Debug.Log($"Picked up {item.ItemName}");
+                }
+                else
+                    Debug.Log("Ray Component is not an Item: " + hit.collider.name);
+            }
+            else
+            {
+                Debug.Log("SearchItem Raycast did not hit anything");
+            }
+        }
     }
 }

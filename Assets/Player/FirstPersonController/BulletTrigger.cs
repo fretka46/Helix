@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    public Player owner;
+
     void OnCollisionEnter(Collision collision)
     {
         // Check if the bullet hit something
         Debug.Log("Bullet hit: " + collision.gameObject.name);
 
-        // You can add additional logic here, such as applying damage to the hit object
+        DamageHandler damageHandler = collision.gameObject.GetComponentInParent<DamageHandler>();
+        if (damageHandler != null)
+        {
+            damageHandler.TakeDamage(10f);
+        }
 
         // Destroy the bullet after collision
         Destroy(gameObject);
